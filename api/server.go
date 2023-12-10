@@ -13,6 +13,7 @@ func NewServer() (*Server, error) {
 	server := &Server{}
 
 	server.setupRouter()
+
 	return server, nil
 }
 
