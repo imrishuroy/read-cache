@@ -40,4 +40,14 @@ ReadCache is an innovative application designed to help users save, organize, an
 1. Set up an AWS account and configure necessary services like S3 for storing user content securely.
 2. Manage AWS credentials and access policies for secure interactions between the app and AWS services.
 
+## To Pull Postgress Docker Image
+    docker pull postgres
+    
+## To Run Postgress Docker Image
+    docker run --name read-cache -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=IWSIWDF2024 -d postgres
+
+## Resources
+    https://docs.sqlc.dev/en/stable/tutorials/getting-started-postgresql.html
+    https://github.com/golang-migrate/migrate - For running migration scripts
+    
 
