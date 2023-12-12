@@ -46,6 +46,13 @@ ReadCache is an innovative application designed to help users save, organize, an
 ## To Run Postgress Docker Image
     docker run --name read-cache -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=IWSIWDF2024 -d postgres
 
+## To Run sqlc ( with docker )
+
+    docker pull sqlc/sqlc
+
+    docker run --rm -v "%cd%:/src" -w /src sqlc/sqlc generate  
+    ( Tip - Run in CMD )
+
 ## Resources
     https://docs.sqlc.dev/en/stable/tutorials/getting-started-postgresql.html
     https://github.com/golang-migrate/migrate - For running migration scripts
