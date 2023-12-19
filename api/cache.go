@@ -2,20 +2,14 @@ package api
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
+	db "github.com/imrishuroy/read-cache/db/sqlc"
 )
 
 type createCache struct {
 	Title string `json:"title" binding:"required"`
 	Link  string `json:"link" binding:"required"`
-}
-
-type cacheResponse struct {
-	Title     string    `json:"title" binding:"required"`
-	Link      string    `json:"link" binding:"required"`
-	CreatedAt time.Time `json:"created_at"`
 }
 
 func (server *Server) createCache(ctx *gin.Context) {
@@ -25,13 +19,16 @@ func (server *Server) createCache(ctx *gin.Context) {
 	}
 
 	// add this cache to DB
-
-	res := cacheResponse{
-		Title:     req.Title,
-		Link:      req.Link,
-		CreatedAt: time.Now(),
+	arg := db.CreateCacheParams{
+		Title: req.Title,
+		Link:  req.Link,
 	}
 
-	ctx.JSON(http.StatusOK, res)
+	cache, err := server.store.CreateCache(ctx, arg)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
 
+	ctx.JSON(http.StatusOK, cache)
 }
