@@ -22,6 +22,12 @@ func NewServer(store db.Store) (*Server, error) {
 func (server *Server) setupRouter() {
 	router := gin.Default()
 	router.POST("/caches", server.createCache)
+	// id is URI parameter
+	router.GET("/caches/:id", server.getCache)
+	// here page_id and page_size is query parameters
+	router.GET("/caches", server.listCaches)
+	router.PUT("/caches", server.updateCache)
+	router.DELETE("/caches/:id", server.deleteCache)
 
 	server.router = router
 
