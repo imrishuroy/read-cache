@@ -6,12 +6,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/imrishuroy/read-cache/util"
 	"github.com/jackc/pgx/v5/pgxpool"
-)
-
-const (
-	dbDriver = "postgres"
-	dbSource = "postgres://root:IWSIWDF2024@localhost:5432/read_cache_db?sslmode=disable"
 )
 
 var testQueries *Queries
@@ -24,7 +20,12 @@ func TestMain(m *testing.M) {
 
 	// testQueries = New(conn)
 
-	connPool, err := pgxpool.New(context.Background(), dbSource)
+	config, err := util.LoadConfig("../..")
+	if err != nil {
+		log.Fatal("cannot load config")
+	}
+
+	connPool, err := pgxpool.New(context.Background(), config.DBSource)
 	if err != nil {
 		log.Fatal("cannot connect to db:", err)
 	}

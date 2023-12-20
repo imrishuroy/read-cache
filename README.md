@@ -56,5 +56,11 @@ ReadCache is an innovative application designed to help users save, organize, an
 ## Resources
     https://docs.sqlc.dev/en/stable/tutorials/getting-started-postgresql.html
     https://github.com/golang-migrate/migrate - For running migration scripts
+
+    Go Gin - https://go.dev/doc/tutorial/web-service-gin
+
+    Go Viper - https://github.com/spf13/viper
+
+
     
 
