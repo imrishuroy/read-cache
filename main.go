@@ -9,13 +9,19 @@ import (
 
 	"github.com/imrishuroy/read-cache/api"
 	db "github.com/imrishuroy/read-cache/db/sqlc"
+	"github.com/imrishuroy/read-cache/util"
 )
 
 func main() {
 
 	fmt.Print("Welcome to ReadCache")
 
-	connPool, err := pgxpool.New(context.Background(), "postgres://root:IWSIWDF2024@localhost:5432/read_cache_db?sslmode=disable")
+	config, err := util.LoadConfig(".")
+	if err != nil {
+		log.Fatal().Msg("cannot load config")
+	}
+
+	connPool, err := pgxpool.New(context.Background(), config.DBSource)
 
 	if err != nil {
 		log.Fatal().Msg("cannot connect to db:")
@@ -27,7 +33,7 @@ func main() {
 		log.Fatal().Msg("cannot create server:")
 	}
 
-	err = server.Start("localhost:8080")
+	err = server.Start(config.ServerAddress)
 	if err != nil {
 		log.Fatal().Msg("cannot create server")
 	}
