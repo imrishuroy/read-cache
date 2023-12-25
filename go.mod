@@ -1,6 +1,6 @@
 module read-cache
 
-go 1.21.5
+go 1.20.10
 
 require (
 	github.com/gin-gonic/gin v1.9.1
