@@ -4,9 +4,14 @@ import (
 	"errors"
 	"net/http"
 
+	db "read-cache/db/sqlc"
+
 	"github.com/gin-gonic/gin"
-	db "github.com/imrishuroy/read-cache/db/sqlc"
 )
+
+func (server *Server) ping(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, "Ok")
+}
 
 type createCacheRequest struct {
 	Title string `json:"title" binding:"required"`

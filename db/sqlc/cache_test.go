@@ -5,7 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/imrishuroy/read-cache/util"
+	"read-cache/util"
+
 	"github.com/stretchr/testify/require"
 )
 
