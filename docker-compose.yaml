@@ -1,0 +1,27 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=IWSIWDF2024
+      - POSTGRES_DB=read_cache_db
+    ports:
+      - "5432:5432" 
+    # volumes:
+    #   - data-volume:/var/lib/postgresql/data   
+
+  api:
+    build: 
+      context: .
+      dockerfile: Dockerfile  
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_SOURCE=postgresql://root:IWSIWDF2024@postgres:5432/read_cache_db?sslmode=disable 
+    depends_on:
+      - postgres
+    entrypoint: [ "/app/wait-for.sh", "postgres:5432", "--", "/app/start.sh" ] 
+    command : ["/app/main"]        
+  # volumes:
+  #   data-volumes:  
