@@ -104,3 +104,6 @@ ReadCache is an innovative application designed to help users save, organize, an
     
 
 DB_SOURCE=postgres://${RDS_USERNAME:db-user}:${RDS_PASSWORD:password}@${RDS_HOSTNAME:localhost}:${RDS_PORT:5432}/${RDS_DB_NAME:read-cache-db}?sslmode=disable
+
+chmod +x start.sh 
+make start.sh executable

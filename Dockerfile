@@ -1,25 +1,21 @@
-FROM golang:1.21.5-alpine3.19
-
-# Install necessary dependencies
-RUN apk update && apk add --no-cache git
-
-# Set the Current Working Directory inside the container
+#Build Stage
+FROM golang:1.21.5-alpine3.19 AS builder
 WORKDIR /app
-
-# Copy dependency files and download them
-COPY go.mod .
-COPY go.sum .
-RUN go mod download
-
-
-# Copy the entire application
 COPY . .
+RUN go build -o main main.go
+RUN apk add curl
+RUN curl -L https://github.com/golang-migrate/migrate/releases/download/v4.14.1/migrate.linux-amd64.tar.gz | tar xvz
 
-# Build the Go app
-RUN go build -o main .
+#Run Stage
+FROM alpine:3.19
+WORKDIR /app
+COPY --from=builder /app/main .
+COPY --from=builder /app/migrate.linux-amd64 ./migrate
+COPY app.env .
+COPY start.sh .
+COPY wait-for.sh .
+COPY db/migration ./migration
 
-# Expose the port the application runs on
 EXPOSE 8080
-
-# Run the binary program produced by go install
-ENTRYPOINT ["./main"]
+CMD [ "/app/main" ]
+ENTRYPOINT [ "/app/start.sh" ]
