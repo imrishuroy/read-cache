@@ -7,21 +7,26 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog/log"
 
-	"github.com/imrishuroy/read-cache/api"
-	db "github.com/imrishuroy/read-cache/db/sqlc"
-	"github.com/imrishuroy/read-cache/util"
+	"read-cache/api"
+	db "read-cache/db/sqlc"
 )
 
 func main() {
 
+	log.Info().Msg("Welcome to ReadCache")
 	fmt.Print("Welcome to ReadCache")
 
-	config, err := util.LoadConfig(".")
-	if err != nil {
-		log.Fatal().Msg("cannot load config")
-	}
+	// config, err := util.LoadConfig(".")
+	// if err != nil {
+	// 	log.Fatal().Msg("cannot load config")
+	// }
 
-	connPool, err := pgxpool.New(context.Background(), config.DBSource)
+	//connPool, err := pgxpool.New(context.Background(), config.DBSource)
+	connPool, err := pgxpool.New(context.Background(), "postgres://postgres:7EQERkvXwFYUcdidVxUd@read-cache.cf48iqcewxbw.ap-south-1.rds.amazonaws.com:5432/read_cache_db")
+	//
+	// dbUrl := os.Getenv("DATABASE_URL")
+	//fmt.Println(dbUrl)
+	//connPool, err := pgxpool.New(context.Background(), dbUrl)
 
 	if err != nil {
 		log.Fatal().Msg("cannot connect to db:")
@@ -33,7 +38,7 @@ func main() {
 		log.Fatal().Msg("cannot create server:")
 	}
 
-	err = server.Start(config.ServerAddress)
+	err = server.Start(":8000")
 	if err != nil {
 		log.Fatal().Msg("cannot create server")
 	}

@@ -46,6 +46,12 @@ ReadCache is an innovative application designed to help users save, organize, an
 ## To Run Postgress Docker Image
     docker run --name read-cache -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=IWSIWDF2024 -d postgres
 
+## To download golang-migrate
+    brew install golang-migrate
+
+## To download sqlc
+   brew install sqlc
+
 ## To Run sqlc ( with docker )
 
     docker pull sqlc/sqlc
@@ -61,6 +67,40 @@ ReadCache is an innovative application designed to help users save, organize, an
 
     Go Viper - https://github.com/spf13/viper
 
+## Docker
+
+    1. Build image
+      docker build -t read-cache:latest .
+
+    2. Run Container
+        docker run --name read-cache-api -p 8080:8080 read-cache:latest   
+
+    3. To Run Container in Production
+        docker run --name read-cache-api -p 8080:8080 -e GIN_MODE=release read-cache:latest
+
+    3 To overide default network ip of running database container
+        docker run --name read-cache-api -p 8080:8080 -e GIN_MODE=release -e DB_SOURCE="postgres://root:IWSIWDF2024@172.17.0.2:5432/read_cache_db?sslmode=disable" read-cache:latest
+
+
+    4. To list running container
+        docker ps    
+
+    4. To remove docker image
+        docker rmi <image-name>
+
+    5. To remove docker container
+        docker rm <container-name>
+
+    7 To inspect docker container image
+        docker container inspect <container-name>   
+
+    8 To see docker network
+        docker network ls
+
+    9 To inspect network
+        docker inspect <network-name>                
+
 
     
 
+DB_SOURCE=postgres://${RDS_USERNAME:db-user}:${RDS_PASSWORD:password}@${RDS_HOSTNAME:localhost}:${RDS_PORT:5432}/${RDS_DB_NAME:read-cache-db}?sslmode=disable

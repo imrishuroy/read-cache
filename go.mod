@@ -1,4 +1,4 @@
-module github.com/imrishuroy/read-cache
+module read-cache
 
 go 1.21.5
 
