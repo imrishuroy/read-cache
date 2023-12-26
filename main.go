@@ -7,9 +7,9 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog/log"
 
-	"read-cache/api"
-	db "read-cache/db/sqlc"
-	"read-cache/util"
+	"github.com/imrishuroy/read-cache/api"
+	db "github.com/imrishuroy/read-cache/db/sqlc"
+	"github.com/imrishuroy/read-cache/util"
 )
 
 func main() {
