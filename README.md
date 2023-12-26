@@ -67,6 +67,13 @@ ReadCache is an innovative application designed to help users save, organize, an
 
     Go Viper - https://github.com/spf13/viper
 
+## Mock
+    Install https://github.com/uber-go/mock
+    Add mockgen to path
+    install gomock in your project -  go get github.com/golang/mock/gomock
+    Run mockgen -package mockdb -destination db/mock/store.go github.com/imrishuroy/read-cache/db/sqlc Store
+
+
 ## Docker
 
     1. Build image
