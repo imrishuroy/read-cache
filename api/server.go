@@ -2,6 +2,7 @@ package api
 
 import (
 	db "github.com/imrishuroy/read-cache/db/sqlc"
+	"github.com/imrishuroy/read-cache/util"
 
 	"github.com/gin-gonic/gin"
 )
@@ -9,12 +10,13 @@ import (
 //Server serves HTTP requests for our banking service.
 
 type Server struct {
+	config util.Config
 	store  db.Store
 	router *gin.Engine
 }
 
-func NewServer(store db.Store) (*Server, error) {
-	server := &Server{store: store}
+func NewServer(config util.Config, store db.Store) (*Server, error) {
+	server := &Server{config: config, store: store}
 	server.setupRouter()
 
 	return server, nil

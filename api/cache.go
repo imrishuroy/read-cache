@@ -22,6 +22,7 @@ func (server *Server) createCache(ctx *gin.Context) {
 	var req createCacheRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
 	}
 
 	// add this cache to DB
