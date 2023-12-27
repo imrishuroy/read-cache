@@ -114,3 +114,6 @@ DB_SOURCE=postgres://${RDS_USERNAME:db-user}:${RDS_PASSWORD:password}@${RDS_HOST
 
 chmod +x start.sh 
 make start.sh executable
+
+## SonarQube
+https://github.com/remast/service_sonar
