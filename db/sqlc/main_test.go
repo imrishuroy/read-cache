@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/imrishuroy/read-cache/util"
+	"github.com/imrishuroy/read-cache-api/util"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )

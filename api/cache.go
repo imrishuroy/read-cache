@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 
-	db "github.com/imrishuroy/read-cache/db/sqlc"
+	db "github.com/imrishuroy/read-cache-api/db/sqlc"
 
 	"github.com/gin-gonic/gin"
 )

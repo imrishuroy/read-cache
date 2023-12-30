@@ -1,8 +1,9 @@
 package api
 
 import (
-	db "github.com/imrishuroy/read-cache/db/sqlc"
-	"github.com/imrishuroy/read-cache/util"
+	"github.com/imrishuroy/read-cache-api/auth"
+	db "github.com/imrishuroy/read-cache-api/db/sqlc"
+	"github.com/imrishuroy/read-cache-api/util"
 
 	"github.com/gin-gonic/gin"
 )
@@ -10,13 +11,14 @@ import (
 //Server serves HTTP requests for our banking service.
 
 type Server struct {
-	config util.Config
-	store  db.Store
-	router *gin.Engine
+	config      util.Config
+	store       db.Store
+	authService *auth.AuthService
+	router      *gin.Engine
 }
 
-func NewServer(config util.Config, store db.Store) (*Server, error) {
-	server := &Server{config: config, store: store}
+func NewServer(config util.Config, store db.Store, authService *auth.AuthService) (*Server, error) {
+	server := &Server{config: config, store: store, authService: authService}
 	server.setupRouter()
 
 	return server, nil
@@ -26,6 +28,8 @@ func (server *Server) setupRouter() {
 	router := gin.Default()
 
 	router.GET("/", server.ping)
+	router.POST("/login", server.Login)
+	router.POST("/register", server.Register)
 
 	router.POST("/caches", server.createCache)
 	// id is URI parameter
