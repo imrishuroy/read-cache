@@ -13,6 +13,9 @@ migrateup:
 migratedown:
 	migrate -path db/migration -database "postgres://root:IWSIWDF2024@localhost:5432/read_cache_db?sslmode=disable" -verbose down
 
+new_migration:
+	migrate create -ext sql -dir db/migration -seq $(name)
+
 test:
 	go test -v -cover ./...
 
@@ -23,4 +26,4 @@ mock:
 	mockgen -package mockdb -destination db/mock/store.go github.com/imrishuroy/read-cache/db/sqlc Store
 
 
-.PHONY: postgres createdb dropdb migrateup migratedown test server mock
+.PHONY: postgres createdb dropdb migrateup migratedown test server mock new_migration
