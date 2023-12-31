@@ -6,12 +6,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/imrishuroy/read-cache/util"
+	"github.com/imrishuroy/read-cache-api/util"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var testQueries *Queries
+var testStore Store
 
 func TestMain(m *testing.M) {
 	// conn, err := sql.Open(dbDriver, dbSource)
@@ -31,7 +31,7 @@ func TestMain(m *testing.M) {
 		log.Fatal("cannot connect to db:", err)
 	}
 
-	testQueries = New(connPool)
+	testStore = NewStore(connPool)
 
 	os.Exit(m.Run())
 }

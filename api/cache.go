@@ -1,11 +1,13 @@
 package api
 
 import (
+	"context"
 	"errors"
 	"net/http"
 
-	db "github.com/imrishuroy/read-cache/db/sqlc"
+	db "github.com/imrishuroy/read-cache-api/db/sqlc"
 
+	"firebase.google.com/go/v4/auth"
 	"github.com/gin-gonic/gin"
 )
 
@@ -24,9 +26,11 @@ func (server *Server) createCache(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
 
 	// add this cache to DB
 	arg := db.CreateCacheParams{
+		Owner: authPayload.UID,
 		Title: req.Title,
 		Link:  req.Link,
 	}
@@ -69,6 +73,12 @@ func (server *Server) getCache(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
+	if cache.Owner != authPayload.UID {
+		err := errors.New("cache does't belong to the authenticated user")
+		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+		return
+	}
 
 	ctx.JSON(http.StatusOK, cache)
 }
@@ -85,7 +95,10 @@ func (server *Server) listCaches(ctx *gin.Context) {
 		return
 	}
 
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
+
 	arg := db.ListCachesParams{
+		Owner:  authPayload.UID,
 		Limit:  req.PageSize,
 		Offset: (req.PageID - 1) * req.PageSize,
 	}
@@ -100,16 +113,33 @@ func (server *Server) listCaches(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, caches)
 }
 
-type updateAccountRequest struct {
+type updateCacheRequest struct {
 	ID    int64  `json:"id" binding:"required"`
 	Title string `json:"title" binding:"required"`
 	Link  string `json:"link" binding:"required"`
 }
 
 func (server *Server) updateCache(ctx *gin.Context) {
-	var req updateAccountRequest
+	var req updateCacheRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
+	dbCache, err := server.store.GetCache(context.Background(), req.ID)
+	if err != nil {
+		if err == db.ErrRecordNotFound {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "no data found for this cache id"})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	if dbCache.Owner != authPayload.UID {
+		err := errors.New("cache does't belong to the authenticated user")
+		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
 		return
 	}
 
@@ -139,9 +169,26 @@ func (server *Server) deleteCache(ctx *gin.Context) {
 		return
 	}
 
-	err := server.store.DeleteCache(ctx, req.ID)
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
+	dbCache, err := server.store.GetCache(context.Background(), req.ID)
 	if err != nil {
+		if err == db.ErrRecordNotFound {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "no data found for this cache id"})
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	if dbCache.Owner != authPayload.UID {
+		err := errors.New("cache does't belong to the authenticated user")
+		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+		return
+	}
+
+	error := server.store.DeleteCache(ctx, req.ID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(error))
 		return
 	}
 

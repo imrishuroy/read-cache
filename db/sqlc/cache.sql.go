@@ -11,23 +11,26 @@ import (
 
 const createCache = `-- name: CreateCache :one
 INSERT INTO caches (
-    title, 
-    link
+  owner,
+  title, 
+  link
 ) VALUES (
-  $1, $2
-) RETURNING id, title, link, created_at
+  $1, $2, $3
+) RETURNING id, owner, title, link, created_at
 `
 
 type CreateCacheParams struct {
+	Owner string `json:"owner"`
 	Title string `json:"title"`
 	Link  string `json:"link"`
 }
 
 func (q *Queries) CreateCache(ctx context.Context, arg CreateCacheParams) (Cache, error) {
-	row := q.db.QueryRow(ctx, createCache, arg.Title, arg.Link)
+	row := q.db.QueryRow(ctx, createCache, arg.Owner, arg.Title, arg.Link)
 	var i Cache
 	err := row.Scan(
 		&i.ID,
+		&i.Owner,
 		&i.Title,
 		&i.Link,
 		&i.CreatedAt,
@@ -46,7 +49,7 @@ func (q *Queries) DeleteCache(ctx context.Context, id int64) error {
 }
 
 const getCache = `-- name: GetCache :one
-SELECT id, title, link, created_at FROM caches
+SELECT id, owner, title, link, created_at FROM caches
 WHERE id = $1 LIMIT 1
 `
 
@@ -55,6 +58,7 @@ func (q *Queries) GetCache(ctx context.Context, id int64) (Cache, error) {
 	var i Cache
 	err := row.Scan(
 		&i.ID,
+		&i.Owner,
 		&i.Title,
 		&i.Link,
 		&i.CreatedAt,
@@ -63,19 +67,21 @@ func (q *Queries) GetCache(ctx context.Context, id int64) (Cache, error) {
 }
 
 const listCaches = `-- name: ListCaches :many
-SELECT id, title, link, created_at FROM caches
+SELECT id, owner, title, link, created_at FROM caches
+WHERE owner =$1
 ORDER BY id
-LIMIT $1
-OFFSET $2
+LIMIT $2
+OFFSET $3
 `
 
 type ListCachesParams struct {
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	Owner  string `json:"owner"`
+	Limit  int32  `json:"limit"`
+	Offset int32  `json:"offset"`
 }
 
 func (q *Queries) ListCaches(ctx context.Context, arg ListCachesParams) ([]Cache, error) {
-	rows, err := q.db.Query(ctx, listCaches, arg.Limit, arg.Offset)
+	rows, err := q.db.Query(ctx, listCaches, arg.Owner, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -85,6 +91,7 @@ func (q *Queries) ListCaches(ctx context.Context, arg ListCachesParams) ([]Cache
 		var i Cache
 		if err := rows.Scan(
 			&i.ID,
+			&i.Owner,
 			&i.Title,
 			&i.Link,
 			&i.CreatedAt,
@@ -104,7 +111,7 @@ UPDATE caches
 SET title = $2,
     link = $3
 WHERE id = $1
-RETURNING id, title, link, created_at
+RETURNING id, owner, title, link, created_at
 `
 
 type UpdateCacheParams struct {
@@ -118,6 +125,7 @@ func (q *Queries) UpdateCache(ctx context.Context, arg UpdateCacheParams) (Cache
 	var i Cache
 	err := row.Scan(
 		&i.ID,
+		&i.Owner,
 		&i.Title,
 		&i.Link,
 		&i.CreatedAt,

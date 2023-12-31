@@ -1,22 +1,44 @@
 package api
 
 import (
-	db "github.com/imrishuroy/read-cache/db/sqlc"
-	"github.com/imrishuroy/read-cache/util"
+	"context"
+	"fmt"
 
+	"firebase.google.com/go/v4/auth"
+	db "github.com/imrishuroy/read-cache-api/db/sqlc"
+	"github.com/imrishuroy/read-cache-api/util"
+	"google.golang.org/api/option"
+
+	firebase "firebase.google.com/go/v4"
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog/log"
 )
 
-//Server serves HTTP requests for our banking service.
-
+// Server serves HTTP requests
 type Server struct {
 	config util.Config
 	store  db.Store
+	auth   *auth.Client
 	router *gin.Engine
 }
 
 func NewServer(config util.Config, store db.Store) (*Server, error) {
-	server := &Server{config: config, store: store}
+
+	opt := option.WithCredentialsFile("./service-account-key.json")
+	app, err := firebase.NewApp(context.Background(), nil, opt)
+	if err != nil {
+		log.Fatal().Msg("Failed to create Firebase app")
+	}
+
+	fmt.Println("fb connection done ", app)
+
+	auth, err := app.Auth(context.Background())
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to create Firebase auth client")
+	}
+
+	server := &Server{config: config, store: store, auth: auth}
+
 	server.setupRouter()
 
 	return server, nil
@@ -24,16 +46,20 @@ func NewServer(config util.Config, store db.Store) (*Server, error) {
 
 func (server *Server) setupRouter() {
 	router := gin.Default()
-
 	router.GET("/", server.ping)
 
-	router.POST("/caches", server.createCache)
+	authRoutes := router.Group("/").Use(authMiddleware(server.auth))
+
+	authRoutes.GET("/users/:id", server.GetUser)
+	authRoutes.POST("/users", server.CreateUser)
+
+	authRoutes.POST("/caches", server.createCache)
 	// id is URI parameter
-	router.GET("/caches/:id", server.getCache)
+	authRoutes.GET("/caches/:id", server.getCache)
 	// here page_id and page_size is query parameters
-	router.GET("/caches", server.listCaches)
-	router.PUT("/caches", server.updateCache)
-	router.DELETE("/caches/:id", server.deleteCache)
+	authRoutes.GET("/caches", server.listCaches)
+	authRoutes.PUT("/caches", server.updateCache)
+	authRoutes.DELETE("/caches/:id", server.deleteCache)
 
 	server.router = router
 

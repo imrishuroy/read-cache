@@ -10,10 +10,14 @@ import (
 
 type Querier interface {
 	CreateCache(ctx context.Context, arg CreateCacheParams) (Cache, error)
+	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteCache(ctx context.Context, id int64) error
 	GetCache(ctx context.Context, id int64) (Cache, error)
+	GetUser(ctx context.Context, id string) (User, error)
+	GetUserByEmail(ctx context.Context, email string) (User, error)
 	ListCaches(ctx context.Context, arg ListCachesParams) ([]Cache, error)
 	UpdateCache(ctx context.Context, arg UpdateCacheParams) (Cache, error)
+	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 }
 
 var _ Querier = (*Queries)(nil)
