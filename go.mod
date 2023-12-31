@@ -1,6 +1,6 @@
 module github.com/imrishuroy/read-cache-api
 
-go 1.21.5
+go 1.21.4
 
 require (
 	firebase.google.com/go/v4 v4.13.0
