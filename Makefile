@@ -1,4 +1,5 @@
-DB_URL=postgres://root:IWSIWDF2024@localhost:5432/read_cache_db?sslmode=disable
+# DB_URL=postgres://root:IWSIWDF2024@localhost:5432/read_cache_db?sslmode=disable
+DB_URL=postgres://root:bHjmMmnEy4Biyh7sDSnpvwgyu7UZzqR7@dpg-cm8q56en7f5s73edbjag-a.singapore-postgres.render.com/read_cache_db
 
 postgres:
 	docker run --name read-cache -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=IWSIWDF2024 -d postgres
@@ -13,10 +14,10 @@ sqlc:
 	sqlc generate
 
 migrateup:
-	migrate -path db/migration -database "postgres://root:IWSIWDF2024@localhost:5432/read_cache_db?sslmode=disable" -verbose up
+	migrate -path db/migration -database "$(DB_URL)" -verbose up
 
 migratedown:
-	migrate -path db/migration -database "postgres://root:IWSIWDF2024@localhost:5432/read_cache_db?sslmode=disable" -verbose down
+	migrate -path db/migration -database "$(DB_URL)" -verbose down
 
 migratedown3:
 	migrate -path db/migration -database "$(DB_URL)" -verbose down 3
