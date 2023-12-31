@@ -11,12 +11,15 @@ import (
 )
 
 func createRandomCache(t *testing.T) Cache {
+	user := createRandomUser(t)
+
 	arg := CreateCacheParams{
+		Owner: user.ID,
 		Title: util.RandomTitle(),
 		Link:  util.RandomLink(),
 	}
 
-	cache, err := testQueries.CreateCache(context.Background(), arg)
+	cache, err := testStore.CreateCache(context.Background(), arg)
 	require.NoError(t, err) // check that error must be nill
 	require.NotEmpty(t, cache)
 
@@ -35,7 +38,7 @@ func TestCreateCache(t *testing.T) {
 
 func TestGetCache(t *testing.T) {
 	cache1 := createRandomCache(t)
-	cache2, err := testQueries.GetCache(context.Background(), cache1.ID)
+	cache2, err := testStore.GetCache(context.Background(), cache1.ID)
 
 	require.NoError(t, err)
 	require.NotEmpty(t, cache2)
@@ -55,7 +58,7 @@ func TestUpdateCache(t *testing.T) {
 		Link:  util.RandomLink(),
 	}
 
-	cache2, err := testQueries.UpdateCache(context.Background(), arg)
+	cache2, err := testStore.UpdateCache(context.Background(), arg)
 
 	require.NoError(t, err)
 	require.NotEmpty(t, cache2)
@@ -68,32 +71,34 @@ func TestUpdateCache(t *testing.T) {
 
 func TestDeleteCache(t *testing.T) {
 	cache1 := createRandomCache(t)
-	err := testQueries.DeleteCache(context.Background(), cache1.ID)
+	err := testStore.DeleteCache(context.Background(), cache1.ID)
 	require.NoError(t, err)
 
-	cache2, err := testQueries.GetCache(context.Background(), cache1.ID)
+	cache2, err := testStore.GetCache(context.Background(), cache1.ID)
 	require.Error(t, err)
 	require.EqualError(t, err, ErrRecordNotFound.Error())
 	require.Empty(t, cache2)
 }
 
 func TestListCache(t *testing.T) {
-
+	var lastCache Cache
 	for i := 0; i < 10; i++ {
-		createRandomCache(t)
+		lastCache = createRandomCache(t)
 	}
 
 	arg := ListCachesParams{
+		Owner:  lastCache.Owner,
 		Limit:  5,
-		Offset: 5,
+		Offset: 0,
 	}
 
-	accounts, err := testQueries.ListCaches(context.Background(), arg)
+	caches, err := testStore.ListCaches(context.Background(), arg)
 	require.NoError(t, err)
-	require.Len(t, accounts, 5)
+	require.NotEmpty(t, caches)
 
-	for _, account := range accounts {
-		require.NotEmpty(t, account)
+	for _, cache := range caches {
+		require.NotEmpty(t, cache)
+		require.Equal(t, lastCache.Owner, cache.Owner)
 	}
 
 }

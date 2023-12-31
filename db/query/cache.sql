@@ -1,9 +1,10 @@
 -- name: CreateCache :one
 INSERT INTO caches (
-    title, 
-    link
+  owner,
+  title, 
+  link
 ) VALUES (
-  $1, $2
+  $1, $2, $3
 ) RETURNING *;
    
 -- name: GetCache :one
@@ -12,9 +13,10 @@ WHERE id = $1 LIMIT 1;
 
 -- name: ListCaches :many
 SELECT * FROM caches
+WHERE owner =$1
 ORDER BY id
-LIMIT $1
-OFFSET $2;
+LIMIT $2
+OFFSET $3;
 
 -- name: UpdateCache :one
 UPDATE caches

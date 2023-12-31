@@ -10,6 +10,7 @@ import (
 
 type Cache struct {
 	ID        int64     `json:"id"`
+	Owner     string    `json:"owner"`
 	Title     string    `json:"title"`
 	Link      string    `json:"link"`
 	CreatedAt time.Time `json:"created_at"`
@@ -18,5 +19,6 @@ type Cache struct {
 type User struct {
 	ID        string    `json:"id"`
 	Email     string    `json:"email"`
+	Name      string    `json:"name"`
 	CreatedAt time.Time `json:"created_at"`
 }
