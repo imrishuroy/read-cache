@@ -12,7 +12,8 @@ import (
 )
 
 func (server *Server) ping(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, "Ok")
+	ctx.String(http.StatusOK, "OK")
+	//ctx.JSON(http.StatusOK, "Ok")
 }
 
 type createCacheRequest struct {

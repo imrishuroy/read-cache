@@ -46,13 +46,14 @@ func NewServer(config util.Config, store db.Store) (*Server, error) {
 
 func (server *Server) setupRouter() {
 	router := gin.Default()
-	router.GET("/", server.ping)
+	router.GET("/", server.ping).Use(CORSMiddleware())
 
 	authRoutes := router.Group("/").Use(authMiddleware(server.auth))
 
-	authRoutes.GET("/users/:id", server.GetUser)
-	authRoutes.POST("/users", server.CreateUser)
+	authRoutes.GET("/users/:id", server.getUser)
+	authRoutes.POST("/users", server.createUser)
 
+	// TODO: check why some methods are camel case and why ther are Capital
 	authRoutes.POST("/caches", server.createCache)
 	// id is URI parameter
 	authRoutes.GET("/caches/:id", server.getCache)
@@ -63,6 +64,32 @@ func (server *Server) setupRouter() {
 
 	server.router = router
 
+}
+
+// func corsMiddleware() gin.HandlerFunc {
+// 	return func(ctx *gin.Context) {
+// 		ctx.Header("Access-Control-Allow-Origin", "*")
+// 		ctx.Header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+// 		ctx.Header("Access-Control-Allow-Headers", "Content-Type")
+
+// 		ctx.Next()
+// 	}
+// }
+
+func CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	}
 }
 
 // Start HTTP server on a specific address

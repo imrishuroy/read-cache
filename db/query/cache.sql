@@ -14,7 +14,8 @@ WHERE id = $1 LIMIT 1;
 -- name: ListCaches :many
 SELECT * FROM caches
 WHERE owner =$1
-ORDER BY id
+-- ORDER BY id
+ORDER BY created_at DESC
 LIMIT $2
 OFFSET $3;
 

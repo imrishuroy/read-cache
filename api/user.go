@@ -12,7 +12,7 @@ type getUserRequest struct {
 	ID string `uri:"id" binding:"required"`
 }
 
-func (server *Server) GetUser(ctx *gin.Context) {
+func (server *Server) getUser(ctx *gin.Context) {
 
 	var req getUserRequest
 	if err := ctx.ShouldBindUri(&req); err != nil {
@@ -41,7 +41,7 @@ type createUserRequest struct {
 	Name  string `json:"name"`
 }
 
-func (server *Server) CreateUser(ctx *gin.Context) {
+func (server *Server) createUser(ctx *gin.Context) {
 
 	var req createUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
