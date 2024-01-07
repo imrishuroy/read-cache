@@ -50,13 +50,13 @@ func main() {
 	// api server setup
 	server, err := api.NewServer(config, store)
 	if err != nil {
-		log.Fatal().Msg("cannot create server:")
+		log.Fatal().Err(err).Msg("cannot create server:")
 	}
 
 	// start the server
 	err = server.Start(config.ServerAddress)
 	if err != nil {
-		log.Fatal().Msg("cannot create server")
+		log.Fatal().Err(err).Msg("cannot create server:")
 	}
 
 }

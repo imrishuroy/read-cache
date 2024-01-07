@@ -69,7 +69,7 @@ func (q *Queries) GetCache(ctx context.Context, id int64) (Cache, error) {
 const listCaches = `-- name: ListCaches :many
 SELECT id, owner, title, link, created_at FROM caches
 WHERE owner =$1
-ORDER BY id
+ORDER BY created_at DESC
 LIMIT $2
 OFFSET $3
 `
@@ -80,6 +80,7 @@ type ListCachesParams struct {
 	Offset int32  `json:"offset"`
 }
 
+// ORDER BY id
 func (q *Queries) ListCaches(ctx context.Context, arg ListCachesParams) ([]Cache, error) {
 	rows, err := q.db.Query(ctx, listCaches, arg.Owner, arg.Limit, arg.Offset)
 	if err != nil {

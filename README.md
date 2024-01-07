@@ -117,3 +117,7 @@ make start.sh executable
 
 ## SonarQube
 https://github.com/remast/service_sonar
+
+CROS
+https://github.com/rs/cors
+https://stackoverflow.com/questions/29418478/go-gin-framework-cors
