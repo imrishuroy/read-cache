@@ -6,14 +6,27 @@ package db
 
 import (
 	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Cache struct {
-	ID        int64     `json:"id"`
-	Owner     string    `json:"owner"`
-	Title     string    `json:"title"`
-	Link      string    `json:"link"`
-	CreatedAt time.Time `json:"created_at"`
+	ID        int64       `json:"id"`
+	Owner     string      `json:"owner"`
+	Title     string      `json:"title"`
+	Link      string      `json:"link"`
+	CreatedAt time.Time   `json:"created_at"`
+	IsPublic  pgtype.Bool `json:"is_public"`
+}
+
+type CacheTag struct {
+	CacheID int64 `json:"cache_id"`
+	TagID   int32 `json:"tag_id"`
+}
+
+type Tag struct {
+	TagID   int32  `json:"tag_id"`
+	TagName string `json:"tag_name"`
 }
 
 type User struct {
@@ -21,4 +34,9 @@ type User struct {
 	Email     string    `json:"email"`
 	Name      string    `json:"name"`
 	CreatedAt time.Time `json:"created_at"`
+}
+
+type UserTag struct {
+	UserID string `json:"user_id"`
+	TagID  int32  `json:"tag_id"`
 }

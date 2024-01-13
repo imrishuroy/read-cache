@@ -59,6 +59,9 @@ ReadCache is an innovative application designed to help users save, organize, an
     docker run --rm -v "%cd%:/src" -w /src sqlc/sqlc generate  
     ( Tip - Run in CMD )
 
+## New Migration
+    migrate create -ext sql -dir db/migration -seq add_tags
+
 ## Resources
     https://docs.sqlc.dev/en/stable/tutorials/getting-started-postgresql.html
     https://github.com/golang-migrate/migrate - For running migration scripts
@@ -121,3 +124,5 @@ https://github.com/remast/service_sonar
 CROS
 https://github.com/rs/cors
 https://stackoverflow.com/questions/29418478/go-gin-framework-cors
+
+https://docs.sqlc.dev/en/latest/howto/named_parameters.html

@@ -1,0 +1,1 @@
+ALTER TABLE "caches" REMOVE "is_public";

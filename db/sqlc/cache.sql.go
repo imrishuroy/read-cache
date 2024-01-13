@@ -7,6 +7,8 @@ package db
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createCache = `-- name: CreateCache :one
@@ -16,7 +18,7 @@ INSERT INTO caches (
   link
 ) VALUES (
   $1, $2, $3
-) RETURNING id, owner, title, link, created_at
+) RETURNING id, owner, title, link, created_at, is_public
 `
 
 type CreateCacheParams struct {
@@ -34,6 +36,7 @@ func (q *Queries) CreateCache(ctx context.Context, arg CreateCacheParams) (Cache
 		&i.Title,
 		&i.Link,
 		&i.CreatedAt,
+		&i.IsPublic,
 	)
 	return i, err
 }
@@ -49,7 +52,7 @@ func (q *Queries) DeleteCache(ctx context.Context, id int64) error {
 }
 
 const getCache = `-- name: GetCache :one
-SELECT id, owner, title, link, created_at FROM caches
+SELECT id, owner, title, link, created_at, is_public FROM caches
 WHERE id = $1 LIMIT 1
 `
 
@@ -62,12 +65,13 @@ func (q *Queries) GetCache(ctx context.Context, id int64) (Cache, error) {
 		&i.Title,
 		&i.Link,
 		&i.CreatedAt,
+		&i.IsPublic,
 	)
 	return i, err
 }
 
 const listCaches = `-- name: ListCaches :many
-SELECT id, owner, title, link, created_at FROM caches
+SELECT id, owner, title, link, created_at, is_public FROM caches
 WHERE owner =$1
 ORDER BY created_at DESC
 LIMIT $2
@@ -80,7 +84,6 @@ type ListCachesParams struct {
 	Offset int32  `json:"offset"`
 }
 
-// ORDER BY id
 func (q *Queries) ListCaches(ctx context.Context, arg ListCachesParams) ([]Cache, error) {
 	rows, err := q.db.Query(ctx, listCaches, arg.Owner, arg.Limit, arg.Offset)
 	if err != nil {
@@ -96,6 +99,43 @@ func (q *Queries) ListCaches(ctx context.Context, arg ListCachesParams) ([]Cache
 			&i.Title,
 			&i.Link,
 			&i.CreatedAt,
+			&i.IsPublic,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listPublicCaches = `-- name: ListPublicCaches :many
+SELECT c.id, c.owner, c.title, c.link, c.created_at, c.is_public
+FROM caches c
+JOIN cache_tags ct ON c.id = ct.cache_id
+JOIN tags t ON ct.tag_id = t.tag_id
+WHERE c.is_public = TRUE
+AND t.tag_id = ANY($1::int[])
+`
+
+func (q *Queries) ListPublicCaches(ctx context.Context, tagIds []int32) ([]Cache, error) {
+	rows, err := q.db.Query(ctx, listPublicCaches, tagIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Cache{}
+	for rows.Next() {
+		var i Cache
+		if err := rows.Scan(
+			&i.ID,
+			&i.Owner,
+			&i.Title,
+			&i.Link,
+			&i.CreatedAt,
+			&i.IsPublic,
 		); err != nil {
 			return nil, err
 		}
@@ -110,19 +150,26 @@ func (q *Queries) ListCaches(ctx context.Context, arg ListCachesParams) ([]Cache
 const updateCache = `-- name: UpdateCache :one
 UPDATE caches
 SET title = $2,
-    link = $3
+    link = $3,
+    is_public = $4
 WHERE id = $1
-RETURNING id, owner, title, link, created_at
+RETURNING id, owner, title, link, created_at, is_public
 `
 
 type UpdateCacheParams struct {
-	ID    int64  `json:"id"`
-	Title string `json:"title"`
-	Link  string `json:"link"`
+	ID       int64       `json:"id"`
+	Title    string      `json:"title"`
+	Link     string      `json:"link"`
+	IsPublic pgtype.Bool `json:"is_public"`
 }
 
 func (q *Queries) UpdateCache(ctx context.Context, arg UpdateCacheParams) (Cache, error) {
-	row := q.db.QueryRow(ctx, updateCache, arg.ID, arg.Title, arg.Link)
+	row := q.db.QueryRow(ctx, updateCache,
+		arg.ID,
+		arg.Title,
+		arg.Link,
+		arg.IsPublic,
+	)
 	var i Cache
 	err := row.Scan(
 		&i.ID,
@@ -130,6 +177,7 @@ func (q *Queries) UpdateCache(ctx context.Context, arg UpdateCacheParams) (Cache
 		&i.Title,
 		&i.Link,
 		&i.CreatedAt,
+		&i.IsPublic,
 	)
 	return i, err
 }
