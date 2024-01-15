@@ -21,7 +21,7 @@ func (server *Server) createTag(ctx *gin.Context) {
 	}
 	tagName := strings.ToLower(req.TagName)
 
-	tag, err := server.store.CreateTag(ctx, tagName)
+	_, err := server.store.CreateTag(ctx, tagName)
 	if err != nil {
 		errorCode := db.ErrorCode(err)
 
@@ -35,8 +35,18 @@ func (server *Server) createTag(ctx *gin.Context) {
 
 	}
 
-	ctx.JSON(http.StatusOK, tag)
+	ctx.JSON(http.StatusOK, successResponse())
 
+}
+
+func (server *Server) listTags(ctx *gin.Context) {
+	tags, err := server.store.ListTags(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, tags)
 }
 
 type addTagToCacheRequest struct {
@@ -56,7 +66,7 @@ func (server *Server) addTagToCache(ctx *gin.Context) {
 		TagID:   req.TagID,
 	}
 
-	cacheTag, err := server.store.AddTagToCache(ctx, arg)
+	_, err := server.store.AddTagToCache(ctx, arg)
 	if err != nil {
 		errorCode := db.ErrorCode(err)
 
@@ -70,12 +80,12 @@ func (server *Server) addTagToCache(ctx *gin.Context) {
 
 	}
 
-	ctx.JSON(http.StatusOK, cacheTag)
+	ctx.JSON(http.StatusOK, successResponse())
 
 }
 
 type listCacheTagsRequest struct {
-	ID int64 `uri:"id" binding:"required,min=1"`
+	cacheID int64 `uri:"id" binding:"required,min=1"`
 }
 
 func (server *Server) listCacheTags(ctx *gin.Context) {
@@ -86,7 +96,7 @@ func (server *Server) listCacheTags(ctx *gin.Context) {
 		return
 	}
 
-	tags, err := server.store.ListCacheTags(ctx, req.ID)
+	tags, err := server.store.ListCacheTags(ctx, req.cacheID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

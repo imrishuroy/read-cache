@@ -22,6 +22,7 @@ type Querier interface {
 	ListCacheTags(ctx context.Context, cacheID int64) ([]Tag, error)
 	ListCaches(ctx context.Context, arg ListCachesParams) ([]Cache, error)
 	ListPublicCaches(ctx context.Context, tagIds []int32) ([]Cache, error)
+	ListTags(ctx context.Context) ([]Tag, error)
 	ListUserSubscriptions(ctx context.Context, userID string) ([]Tag, error)
 	SubscribeTag(ctx context.Context, arg SubscribeTagParams) (UserTag, error)
 	UnsubscribeTag(ctx context.Context, arg UnsubscribeTagParams) error

@@ -92,6 +92,30 @@ func (q *Queries) ListCacheTags(ctx context.Context, cacheID int64) ([]Tag, erro
 	return items, nil
 }
 
+const listTags = `-- name: ListTags :many
+SELECT tag_id, tag_name FROM tags
+`
+
+func (q *Queries) ListTags(ctx context.Context) ([]Tag, error) {
+	rows, err := q.db.Query(ctx, listTags)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Tag{}
+	for rows.Next() {
+		var i Tag
+		if err := rows.Scan(&i.TagID, &i.TagName); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listUserSubscriptions = `-- name: ListUserSubscriptions :many
 SELECT t.tag_id, t.tag_name
 FROM user_tags ut

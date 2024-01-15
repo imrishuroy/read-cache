@@ -6,7 +6,7 @@ func (server *Server) setupRouter() {
 	router := gin.Default()
 	router.GET("/", server.ping).Use(CORSMiddleware())
 
-	authRoutes := router.Group("/").Use(authMiddleware(server.auth))
+	authRoutes := router.Group("/api").Use(authMiddleware(server.auth))
 
 	// users
 	authRoutes.GET("/users/:id", server.getUser)
@@ -24,11 +24,12 @@ func (server *Server) setupRouter() {
 
 	// tags
 	authRoutes.POST("/tags", server.createTag)
-	authRoutes.POST("/tags/cache", server.addTagToCache)
-	authRoutes.GET("/tags/cache/:id", server.listCacheTags)
+	authRoutes.GET("/tags", server.listTags)
+	authRoutes.POST("/caches/add-tag", server.addTagToCache)
+	authRoutes.GET("/caches/:id/tags", server.listCacheTags)
 	authRoutes.POST("/tags/:tag_id/subscribe", server.subscribeTag)
-	authRoutes.DELETE("/tags/:tag_id/subscribe", server.unsubscribeTag)
-	authRoutes.GET("/users/subscriptions", server.listUserSubscriptions)
+	authRoutes.DELETE("/tags/:tag_id/unsubscribe", server.unsubscribeTag)
+	authRoutes.GET("/users/tags/subscriptions", server.listUserSubscriptions)
 
 	server.router = router
 

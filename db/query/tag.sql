@@ -5,6 +5,9 @@ INSERT INTO tags (
   $1
 ) RETURNING *;
 
+-- name: ListTags :many
+SELECT * FROM tags;
+
 -- name: DeleteTagFromCacheTagsTable :exec
 DELETE FROM cache_tags 
 WHERE tag_id = $1;
