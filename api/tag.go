@@ -179,3 +179,34 @@ func (server *Server) listUserSubscriptions(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, tags)
 }
+
+type deleteTagRequest struct {
+	TagID int32 `uri:"tag_id" binding:"required,min=1"`
+}
+
+func (server *Server) deleteTag(ctx *gin.Context) {
+	var req deleteTagRequest
+	if err := ctx.ShouldBindUri(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+	err1 := server.store.DeleteTagFromUserTagsTable(ctx, req.TagID)
+	if err1 != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err1))
+		return
+	}
+
+	err2 := server.store.DeleteTagFromCacheTagsTable(ctx, req.TagID)
+	if err2 != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err2))
+		return
+	}
+
+	err3 := server.store.DeleteTagFromTagsTable(ctx, req.TagID)
+	if err3 != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err3))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, successResponse())
+}

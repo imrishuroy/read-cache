@@ -16,6 +16,7 @@ type Querier interface {
 	DeleteCache(ctx context.Context, id int64) error
 	DeleteTagFromCacheTagsTable(ctx context.Context, tagID int32) error
 	DeleteTagFromTagsTable(ctx context.Context, tagID int32) error
+	DeleteTagFromUserTagsTable(ctx context.Context, tagID int32) error
 	GetCache(ctx context.Context, id int64) (Cache, error)
 	GetUser(ctx context.Context, id string) (User, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)

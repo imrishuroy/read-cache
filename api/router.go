@@ -30,6 +30,7 @@ func (server *Server) setupRouter() {
 	authRoutes.POST("/tags/:tag_id/subscribe", server.subscribeTag)
 	authRoutes.DELETE("/tags/:tag_id/unsubscribe", server.unsubscribeTag)
 	authRoutes.GET("/users/tags/subscriptions", server.listUserSubscriptions)
+	authRoutes.DELETE("/tags/:tag_id", server.deleteTag)
 
 	server.router = router
 

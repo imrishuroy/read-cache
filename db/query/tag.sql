@@ -12,6 +12,10 @@ SELECT * FROM tags;
 DELETE FROM cache_tags 
 WHERE tag_id = $1;
 
+-- name: DeleteTagFromUserTagsTable :exec
+DELETE FROM user_tags 
+WHERE tag_id = $1;
+
 -- name: DeleteTagFromTagsTable :exec
 DELETE FROM tags
 WHERE tag_id = $1;
