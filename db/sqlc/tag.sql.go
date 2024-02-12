@@ -45,6 +45,16 @@ func (q *Queries) CreateTag(ctx context.Context, tagName string) (Tag, error) {
 	return i, err
 }
 
+const deleteCacheTag = `-- name: DeleteCacheTag :exec
+DELETE FROM cache_tags
+WHERE cache_id = $1
+`
+
+func (q *Queries) DeleteCacheTag(ctx context.Context, cacheID int64) error {
+	_, err := q.db.Exec(ctx, deleteCacheTag, cacheID)
+	return err
+}
+
 const deleteTagFromCacheTagsTable = `-- name: DeleteTagFromCacheTagsTable :exec
 DELETE FROM cache_tags 
 WHERE tag_id = $1
@@ -65,6 +75,16 @@ func (q *Queries) DeleteTagFromTagsTable(ctx context.Context, tagID int32) error
 	return err
 }
 
+const deleteTagFromUserTagsTable = `-- name: DeleteTagFromUserTagsTable :exec
+DELETE FROM user_tags 
+WHERE tag_id = $1
+`
+
+func (q *Queries) DeleteTagFromUserTagsTable(ctx context.Context, tagID int32) error {
+	_, err := q.db.Exec(ctx, deleteTagFromUserTagsTable, tagID)
+	return err
+}
+
 const listCacheTags = `-- name: ListCacheTags :many
 SELECT t.tag_id, t.tag_name
 FROM cache_tags ct
@@ -74,6 +94,30 @@ WHERE ct.cache_id =$1
 
 func (q *Queries) ListCacheTags(ctx context.Context, cacheID int64) ([]Tag, error) {
 	rows, err := q.db.Query(ctx, listCacheTags, cacheID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Tag{}
+	for rows.Next() {
+		var i Tag
+		if err := rows.Scan(&i.TagID, &i.TagName); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listTags = `-- name: ListTags :many
+SELECT tag_id, tag_name FROM tags
+`
+
+func (q *Queries) ListTags(ctx context.Context) ([]Tag, error) {
+	rows, err := q.db.Query(ctx, listTags)
 	if err != nil {
 		return nil, err
 	}

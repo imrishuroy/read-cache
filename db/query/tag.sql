@@ -5,8 +5,15 @@ INSERT INTO tags (
   $1
 ) RETURNING *;
 
+-- name: ListTags :many
+SELECT * FROM tags;
+
 -- name: DeleteTagFromCacheTagsTable :exec
 DELETE FROM cache_tags 
+WHERE tag_id = $1;
+
+-- name: DeleteTagFromUserTagsTable :exec
+DELETE FROM user_tags 
 WHERE tag_id = $1;
 
 -- name: DeleteTagFromTagsTable :exec
@@ -45,3 +52,6 @@ FROM cache_tags ct
 JOIN tags t ON ct.tag_id = t.tag_id
 WHERE ct.cache_id =$1;
 
+-- name: DeleteCacheTag :exec
+DELETE FROM cache_tags
+WHERE cache_id = $1;

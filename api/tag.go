@@ -39,43 +39,64 @@ func (server *Server) createTag(ctx *gin.Context) {
 
 }
 
-type addTagToCacheRequest struct {
-	CacheID int64 `json:"cache_id"`
-	TagID   int32 `json:"tag_id"`
+func (server *Server) listTags(ctx *gin.Context) {
+	tags, err := server.store.ListTags(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, tags)
+}
+
+type tagIDsRequest struct {
+	TagIDs []int32 `json:"tag_ids"`
+}
+
+type cacheIDsRequest struct {
+	CacheID int64 `uri:"cache_id"`
 }
 
 func (server *Server) addTagToCache(ctx *gin.Context) {
-	var req addTagToCacheRequest
-	if err := ctx.ShouldBindJSON(&req); err != nil {
+
+	var tagIDsRequest tagIDsRequest
+	if err := ctx.ShouldBindJSON(&tagIDsRequest); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
-	arg := db.AddTagToCacheParams{
-		CacheID: req.CacheID,
-		TagID:   req.TagID,
+	var cacheIDsRequest cacheIDsRequest
+	if err := ctx.ShouldBindUri(&cacheIDsRequest); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
 	}
 
-	cacheTag, err := server.store.AddTagToCache(ctx, arg)
-	if err != nil {
-		errorCode := db.ErrorCode(err)
-
-		if errorCode == db.UniqueViolation {
-			ctx.JSON(http.StatusForbidden, gin.H{"error": "tag already exists"})
-			return
+	for _, tagID := range tagIDsRequest.TagIDs {
+		arg := db.AddTagToCacheParams{
+			CacheID: cacheIDsRequest.CacheID,
+			TagID:   tagID,
 		}
 
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
+		_, err := server.store.AddTagToCache(ctx, arg)
+		if err != nil {
+			errorCode := db.ErrorCode(err)
 
+			if errorCode == db.UniqueViolation {
+				ctx.JSON(http.StatusForbidden, gin.H{"error": "tag already exists"})
+				return
+			}
+
+			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+			return
+
+		}
 	}
 
-	ctx.JSON(http.StatusOK, cacheTag)
-
+	ctx.JSON(http.StatusOK, successResponse())
 }
 
 type listCacheTagsRequest struct {
-	ID int64 `uri:"id" binding:"required,min=1"`
+	CacheID int64 `uri:"cache_id" binding:"required,min=1"`
 }
 
 func (server *Server) listCacheTags(ctx *gin.Context) {
@@ -86,7 +107,8 @@ func (server *Server) listCacheTags(ctx *gin.Context) {
 		return
 	}
 
-	tags, err := server.store.ListCacheTags(ctx, req.ID)
+	tags, err := server.store.ListCacheTags(ctx, req.CacheID)
+
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -168,4 +190,55 @@ func (server *Server) listUserSubscriptions(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, tags)
+}
+
+type deleteTagRequest struct {
+	TagID int32 `uri:"tag_id" binding:"required,min=1"`
+}
+
+func (server *Server) deleteTag(ctx *gin.Context) {
+	var req deleteTagRequest
+	if err := ctx.ShouldBindUri(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+	err1 := server.store.DeleteTagFromUserTagsTable(ctx, req.TagID)
+	if err1 != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err1))
+		return
+	}
+
+	err2 := server.store.DeleteTagFromCacheTagsTable(ctx, req.TagID)
+	if err2 != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err2))
+		return
+	}
+
+	err3 := server.store.DeleteTagFromTagsTable(ctx, req.TagID)
+	if err3 != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err3))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, successResponse())
+}
+
+type deleteCacheTagsRequest struct {
+	CacheID int64 `uri:"id" binding:"required,min=1"`
+}
+
+func (server *Server) deleteCacheTags(ctx *gin.Context) {
+	var req deleteCacheTagsRequest
+	if err := ctx.ShouldBindUri(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	err := server.store.DeleteCacheTag(ctx, req.CacheID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, successResponse())
 }

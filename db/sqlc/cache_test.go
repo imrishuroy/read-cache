@@ -14,9 +14,9 @@ func createRandomCache(t *testing.T) Cache {
 	user := createRandomUser(t)
 
 	arg := CreateCacheParams{
-		Owner: user.ID,
-		Title: util.RandomTitle(),
-		Link:  util.RandomLink(),
+		Owner:   user.ID,
+		Title:   util.RandomTitle(),
+		Content: util.RandomContent(),
 	}
 
 	cache, err := testStore.CreateCache(context.Background(), arg)
@@ -24,7 +24,7 @@ func createRandomCache(t *testing.T) Cache {
 	require.NotEmpty(t, cache)
 
 	require.Equal(t, arg.Title, cache.Title)
-	require.Equal(t, arg.Link, cache.Link)
+	require.Equal(t, arg.Content, cache.Content)
 
 	require.NotZero(t, cache.ID)
 	require.NotZero(t, cache.CreatedAt)
@@ -45,7 +45,7 @@ func TestGetCache(t *testing.T) {
 
 	require.Equal(t, cache1.ID, cache2.ID)
 	require.Equal(t, cache1.Title, cache2.Title)
-	require.Equal(t, cache1.Link, cache2.Link)
+	require.Equal(t, cache1.Content, cache2.Content)
 	require.WithinDuration(t, cache1.CreatedAt, cache2.CreatedAt, time.Second)
 }
 
@@ -53,9 +53,9 @@ func TestUpdateCache(t *testing.T) {
 	cache1 := createRandomCache(t)
 
 	arg := UpdateCacheParams{
-		ID:    cache1.ID,
-		Title: cache1.Title,
-		Link:  util.RandomLink(),
+		ID:      cache1.ID,
+		Title:   cache1.Title,
+		Content: util.RandomContent(),
 	}
 
 	cache2, err := testStore.UpdateCache(context.Background(), arg)
@@ -65,7 +65,7 @@ func TestUpdateCache(t *testing.T) {
 
 	require.Equal(t, cache1.ID, cache2.ID)
 	require.Equal(t, cache1.Title, cache2.Title)
-	require.Equal(t, arg.Link, cache2.Link)
+	require.Equal(t, arg.Content, cache2.Content)
 	require.WithinDuration(t, cache1.CreatedAt, cache2.CreatedAt, time.Second)
 }
 

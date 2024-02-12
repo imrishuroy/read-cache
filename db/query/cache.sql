@@ -2,9 +2,10 @@
 INSERT INTO caches (
   owner,
   title, 
-  link
+  content,
+  is_public
 ) VALUES (
-  $1, $2, $3
+  $1, $2, $3, $4
 ) RETURNING *;
    
 -- name: GetCache :one
@@ -21,7 +22,7 @@ OFFSET $3;
 -- name: UpdateCache :one
 UPDATE caches
 SET title = $2,
-    link = $3,
+    content = $3,
     is_public = $4
 WHERE id = $1
 RETURNING *;
@@ -33,10 +34,23 @@ WHERE id = $1;
 -- name: ListPublicCaches :many
 SELECT c.*
 FROM caches c
+WHERE c.is_public = TRUE
+LIMIT $1
+OFFSET $2;
+
+-- name: ListPublicCachesByTags :many
+SELECT c.*
+FROM caches c
 JOIN cache_tags ct ON c.id = ct.cache_id
 JOIN tags t ON ct.tag_id = t.tag_id
 WHERE c.is_public = TRUE
-AND t.tag_id = ANY(sqlc.arg(tag_ids)::int[]);
+AND t.tag_id = ANY(sqlc.arg(tag_ids)::int[])
+LIMIT $1
+OFFSET $2;
+
+
+
+
 
 
 

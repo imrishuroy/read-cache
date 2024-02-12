@@ -14,14 +14,18 @@ type Querier interface {
 	CreateTag(ctx context.Context, tagName string) (Tag, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteCache(ctx context.Context, id int64) error
+	DeleteCacheTag(ctx context.Context, cacheID int64) error
 	DeleteTagFromCacheTagsTable(ctx context.Context, tagID int32) error
 	DeleteTagFromTagsTable(ctx context.Context, tagID int32) error
+	DeleteTagFromUserTagsTable(ctx context.Context, tagID int32) error
 	GetCache(ctx context.Context, id int64) (Cache, error)
 	GetUser(ctx context.Context, id string) (User, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	ListCacheTags(ctx context.Context, cacheID int64) ([]Tag, error)
 	ListCaches(ctx context.Context, arg ListCachesParams) ([]Cache, error)
-	ListPublicCaches(ctx context.Context, tagIds []int32) ([]Cache, error)
+	ListPublicCaches(ctx context.Context, arg ListPublicCachesParams) ([]Cache, error)
+	ListPublicCachesByTags(ctx context.Context, arg ListPublicCachesByTagsParams) ([]Cache, error)
+	ListTags(ctx context.Context) ([]Tag, error)
 	ListUserSubscriptions(ctx context.Context, userID string) ([]Tag, error)
 	SubscribeTag(ctx context.Context, arg SubscribeTagParams) (UserTag, error)
 	UnsubscribeTag(ctx context.Context, arg UnsubscribeTagParams) error

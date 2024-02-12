@@ -45,6 +45,6 @@ func RandomTitle() string {
 	return RandomString(10)
 }
 
-func RandomLink() string {
+func RandomContent() string {
 	return RandomString(10)
 }
