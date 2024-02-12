@@ -15,26 +15,33 @@ const createCache = `-- name: CreateCache :one
 INSERT INTO caches (
   owner,
   title, 
-  link
+  content,
+  is_public
 ) VALUES (
-  $1, $2, $3
-) RETURNING id, owner, title, link, created_at, is_public
+  $1, $2, $3, $4
+) RETURNING id, owner, title, content, created_at, is_public
 `
 
 type CreateCacheParams struct {
-	Owner string `json:"owner"`
-	Title string `json:"title"`
-	Link  string `json:"link"`
+	Owner    string      `json:"owner"`
+	Title    string      `json:"title"`
+	Content  string      `json:"content"`
+	IsPublic pgtype.Bool `json:"is_public"`
 }
 
 func (q *Queries) CreateCache(ctx context.Context, arg CreateCacheParams) (Cache, error) {
-	row := q.db.QueryRow(ctx, createCache, arg.Owner, arg.Title, arg.Link)
+	row := q.db.QueryRow(ctx, createCache,
+		arg.Owner,
+		arg.Title,
+		arg.Content,
+		arg.IsPublic,
+	)
 	var i Cache
 	err := row.Scan(
 		&i.ID,
 		&i.Owner,
 		&i.Title,
-		&i.Link,
+		&i.Content,
 		&i.CreatedAt,
 		&i.IsPublic,
 	)
@@ -52,7 +59,7 @@ func (q *Queries) DeleteCache(ctx context.Context, id int64) error {
 }
 
 const getCache = `-- name: GetCache :one
-SELECT id, owner, title, link, created_at, is_public FROM caches
+SELECT id, owner, title, content, created_at, is_public FROM caches
 WHERE id = $1 LIMIT 1
 `
 
@@ -63,7 +70,7 @@ func (q *Queries) GetCache(ctx context.Context, id int64) (Cache, error) {
 		&i.ID,
 		&i.Owner,
 		&i.Title,
-		&i.Link,
+		&i.Content,
 		&i.CreatedAt,
 		&i.IsPublic,
 	)
@@ -71,7 +78,7 @@ func (q *Queries) GetCache(ctx context.Context, id int64) (Cache, error) {
 }
 
 const listCaches = `-- name: ListCaches :many
-SELECT id, owner, title, link, created_at, is_public FROM caches
+SELECT id, owner, title, content, created_at, is_public FROM caches
 WHERE owner =$1
 ORDER BY created_at DESC
 LIMIT $2
@@ -97,7 +104,7 @@ func (q *Queries) ListCaches(ctx context.Context, arg ListCachesParams) ([]Cache
 			&i.ID,
 			&i.Owner,
 			&i.Title,
-			&i.Link,
+			&i.Content,
 			&i.CreatedAt,
 			&i.IsPublic,
 		); err != nil {
@@ -112,16 +119,20 @@ func (q *Queries) ListCaches(ctx context.Context, arg ListCachesParams) ([]Cache
 }
 
 const listPublicCaches = `-- name: ListPublicCaches :many
-SELECT c.id, c.owner, c.title, c.link, c.created_at, c.is_public
+SELECT c.id, c.owner, c.title, c.content, c.created_at, c.is_public
 FROM caches c
-JOIN cache_tags ct ON c.id = ct.cache_id
-JOIN tags t ON ct.tag_id = t.tag_id
 WHERE c.is_public = TRUE
-AND t.tag_id = ANY($1::int[])
+LIMIT $1
+OFFSET $2
 `
 
-func (q *Queries) ListPublicCaches(ctx context.Context, tagIds []int32) ([]Cache, error) {
-	rows, err := q.db.Query(ctx, listPublicCaches, tagIds)
+type ListPublicCachesParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+func (q *Queries) ListPublicCaches(ctx context.Context, arg ListPublicCachesParams) ([]Cache, error) {
+	rows, err := q.db.Query(ctx, listPublicCaches, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +144,51 @@ func (q *Queries) ListPublicCaches(ctx context.Context, tagIds []int32) ([]Cache
 			&i.ID,
 			&i.Owner,
 			&i.Title,
-			&i.Link,
+			&i.Content,
+			&i.CreatedAt,
+			&i.IsPublic,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listPublicCachesByTags = `-- name: ListPublicCachesByTags :many
+SELECT c.id, c.owner, c.title, c.content, c.created_at, c.is_public
+FROM caches c
+JOIN cache_tags ct ON c.id = ct.cache_id
+JOIN tags t ON ct.tag_id = t.tag_id
+WHERE c.is_public = TRUE
+AND t.tag_id = ANY($3::int[])
+LIMIT $1
+OFFSET $2
+`
+
+type ListPublicCachesByTagsParams struct {
+	Limit  int32   `json:"limit"`
+	Offset int32   `json:"offset"`
+	TagIds []int32 `json:"tag_ids"`
+}
+
+func (q *Queries) ListPublicCachesByTags(ctx context.Context, arg ListPublicCachesByTagsParams) ([]Cache, error) {
+	rows, err := q.db.Query(ctx, listPublicCachesByTags, arg.Limit, arg.Offset, arg.TagIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Cache{}
+	for rows.Next() {
+		var i Cache
+		if err := rows.Scan(
+			&i.ID,
+			&i.Owner,
+			&i.Title,
+			&i.Content,
 			&i.CreatedAt,
 			&i.IsPublic,
 		); err != nil {
@@ -150,16 +205,16 @@ func (q *Queries) ListPublicCaches(ctx context.Context, tagIds []int32) ([]Cache
 const updateCache = `-- name: UpdateCache :one
 UPDATE caches
 SET title = $2,
-    link = $3,
+    content = $3,
     is_public = $4
 WHERE id = $1
-RETURNING id, owner, title, link, created_at, is_public
+RETURNING id, owner, title, content, created_at, is_public
 `
 
 type UpdateCacheParams struct {
 	ID       int64       `json:"id"`
 	Title    string      `json:"title"`
-	Link     string      `json:"link"`
+	Content  string      `json:"content"`
 	IsPublic pgtype.Bool `json:"is_public"`
 }
 
@@ -167,7 +222,7 @@ func (q *Queries) UpdateCache(ctx context.Context, arg UpdateCacheParams) (Cache
 	row := q.db.QueryRow(ctx, updateCache,
 		arg.ID,
 		arg.Title,
-		arg.Link,
+		arg.Content,
 		arg.IsPublic,
 	)
 	var i Cache
@@ -175,7 +230,7 @@ func (q *Queries) UpdateCache(ctx context.Context, arg UpdateCacheParams) (Cache
 		&i.ID,
 		&i.Owner,
 		&i.Title,
-		&i.Link,
+		&i.Content,
 		&i.CreatedAt,
 		&i.IsPublic,
 	)

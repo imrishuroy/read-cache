@@ -14,7 +14,7 @@ type Cache struct {
 	ID        int64       `json:"id"`
 	Owner     string      `json:"owner"`
 	Title     string      `json:"title"`
-	Link      string      `json:"link"`
+	Content   string      `json:"content"`
 	CreatedAt time.Time   `json:"created_at"`
 	IsPublic  pgtype.Bool `json:"is_public"`
 }

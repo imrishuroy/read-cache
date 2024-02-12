@@ -15,7 +15,7 @@ func (server *Server) setupRouter() {
 	// caches
 	authRoutes.POST("/caches", server.createCache)
 	// id is URI parameter
-	authRoutes.GET("/caches/:id", server.getCache)
+	authRoutes.GET("/caches/:cache_id", server.getCache)
 	// here page_id and page_size is query parameters
 	authRoutes.GET("/caches", server.listCaches)
 	authRoutes.PUT("/caches", server.updateCache)
@@ -25,12 +25,14 @@ func (server *Server) setupRouter() {
 	// tags
 	authRoutes.POST("/tags", server.createTag)
 	authRoutes.GET("/tags", server.listTags)
-	authRoutes.POST("/caches/add-tag", server.addTagToCache)
-	authRoutes.GET("/caches/:id/tags", server.listCacheTags)
+	// TODO: search tags api
+	authRoutes.POST("/caches/:cache_id/add-tag", server.addTagToCache)
+	authRoutes.GET("/caches/:cache_id/tags", server.listCacheTags)
 	authRoutes.POST("/tags/:tag_id/subscribe", server.subscribeTag)
 	authRoutes.DELETE("/tags/:tag_id/unsubscribe", server.unsubscribeTag)
 	authRoutes.GET("/users/tags/subscriptions", server.listUserSubscriptions)
 	authRoutes.DELETE("/tags/:tag_id", server.deleteTag)
+	authRoutes.DELETE("/caches/:id/tags", server.deleteCacheTags)
 
 	server.router = router
 

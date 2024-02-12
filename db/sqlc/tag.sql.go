@@ -45,6 +45,16 @@ func (q *Queries) CreateTag(ctx context.Context, tagName string) (Tag, error) {
 	return i, err
 }
 
+const deleteCacheTag = `-- name: DeleteCacheTag :exec
+DELETE FROM cache_tags
+WHERE cache_id = $1
+`
+
+func (q *Queries) DeleteCacheTag(ctx context.Context, cacheID int64) error {
+	_, err := q.db.Exec(ctx, deleteCacheTag, cacheID)
+	return err
+}
+
 const deleteTagFromCacheTagsTable = `-- name: DeleteTagFromCacheTagsTable :exec
 DELETE FROM cache_tags 
 WHERE tag_id = $1

@@ -52,3 +52,6 @@ FROM cache_tags ct
 JOIN tags t ON ct.tag_id = t.tag_id
 WHERE ct.cache_id =$1;
 
+-- name: DeleteCacheTag :exec
+DELETE FROM cache_tags
+WHERE cache_id = $1;

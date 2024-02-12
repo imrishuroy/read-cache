@@ -19,8 +19,9 @@ func (server *Server) ping(ctx *gin.Context) {
 }
 
 type createCacheRequest struct {
-	Title string `json:"title" binding:"required"`
-	Link  string `json:"link" binding:"required"`
+	Title    string `json:"title" binding:"required"`
+	Content  string `json:"content" binding:"required"`
+	IsPublic bool   `json:"is_public" binding:"required"`
 }
 
 func (server *Server) createCache(ctx *gin.Context) {
@@ -33,9 +34,10 @@ func (server *Server) createCache(ctx *gin.Context) {
 
 	// add this cache to DB
 	arg := db.CreateCacheParams{
-		Owner: authPayload.UID,
-		Title: req.Title,
-		Link:  req.Link,
+		Owner:    authPayload.UID,
+		Title:    req.Title,
+		Content:  req.Content,
+		IsPublic: pgtype.Bool{Bool: req.IsPublic, Valid: true},
 	}
 
 	cache, err := server.store.CreateCache(ctx, arg)
@@ -54,7 +56,7 @@ func (server *Server) createCache(ctx *gin.Context) {
 }
 
 type getCacheRequest struct {
-	ID int64 `uri:"id" binding:"required,min=1"`
+	ID int64 `uri:"cache_id" binding:"required,min=1"`
 }
 
 func (server *Server) getCache(ctx *gin.Context) {
@@ -119,7 +121,7 @@ func (server *Server) listCaches(ctx *gin.Context) {
 type updateCacheRequest struct {
 	ID       int64  `json:"id" binding:"required"`
 	Title    string `json:"title" binding:"required"`
-	Link     string `json:"link" binding:"required"`
+	Content  string `json:"content" binding:"required"`
 	IsPublic bool   `json:"is_public"`
 }
 
@@ -152,7 +154,7 @@ func (server *Server) updateCache(ctx *gin.Context) {
 	arg := db.UpdateCacheParams{
 		ID:       req.ID,
 		Title:    req.Title,
-		Link:     req.Link,
+		Content:  req.Content,
 		IsPublic: pgtype.Bool{Bool: req.IsPublic, Valid: true},
 	}
 
@@ -201,7 +203,9 @@ func (server *Server) deleteCache(ctx *gin.Context) {
 }
 
 type listPublicCachesByTagIDsRequest struct {
-	TagIDs []int32 `form:"tag_ids" binding:"required"`
+	PageID   int32   `form:"page_id" binding:"required,min=1"`
+	PageSize int32   `form:"page_size" binding:"required,min=5,max=10"`
+	TagIDs   []int32 `form:"tag_ids"`
 }
 
 func (server *Server) listPublicCaches(ctx *gin.Context) {
@@ -213,11 +217,33 @@ func (server *Server) listPublicCaches(ctx *gin.Context) {
 
 	fmt.Println("req.TagIDs", req.TagIDs)
 
-	caches, err := server.store.ListPublicCaches(ctx, req.TagIDs)
+	publicCacheArg := db.ListPublicCachesParams{
+
+		Limit:  req.PageSize,
+		Offset: (req.PageID - 1) * req.PageSize,
+	}
+
+	if len(req.TagIDs) == 0 {
+		caches, err := server.store.ListPublicCaches(ctx, publicCacheArg)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+			return
+		}
+		ctx.JSON(http.StatusOK, caches)
+		return
+	}
+
+	publicCacheByTagsArg := db.ListPublicCachesByTagsParams{
+		TagIds: req.TagIDs,
+		Limit:  req.PageSize,
+		Offset: (req.PageID - 1) * req.PageSize,
+	}
+
+	caches, err := server.store.ListPublicCachesByTags(ctx, publicCacheByTagsArg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
-
 	ctx.JSON(http.StatusOK, caches)
+
 }
